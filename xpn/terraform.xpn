@@ -1,0 +1,6 @@
+# terraform has 1 subcommand as default
+terraform            <cmd+1
+terraform>a          apply
+terraform>p          plan
+terraform>w          workspace
+terraform>workspace  <cmd+1

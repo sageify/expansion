@@ -1,0 +1,32 @@
+# link in standard kubectrl
+kc <file=../xpn/kubectl.xpn word=kubectl
+
+#
+# Test Options
+# 
+
+pf printf
+printf
+printf:--all          all
+printf>--dang         edge case
+printf>--dangcase     +edge case=
+printf>--dangword     +`edge case=
+printf>--ignore-next  <native+1
+printf>--ignore-rest  <native+99
+printf>--lines        -s -w
+printf>--spaces       `   
+printf>--warning      "Hello World"
+printf>-b             `[%s]
+printf>-s             Hello World
+printf>-t             `Hello `World
+printf>-w             `Hello World
+
+# normal behavior for -xy is to become -x -y
+# however, if for some reason want to maintain -xy with no change
+printf>-xy            <native
+
+# possible error - if allowed, would have the effect of deleting --e1, 
+printf>--e1           +
+
+# unknown directive error
+printf>--e4           <unknown

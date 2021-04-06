@@ -1,0 +1,8 @@
+# https://www.freecodecamp.org/news/git-cheat-sheet-and-best-practices-c6ce5321f52/#:~:text=If%20you've%20copied%20a,URL%20of%20the%20remote%20repo.
+
+git             <cmd+1
+git>remote      <cmd+1
+
+git>go          config --get remote.origin.url
+git>ao          remote add origin
+git>dot         +push origin :refs/tags/

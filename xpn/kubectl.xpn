@@ -1,0 +1,92 @@
+# kubectl has 1 subcommand as standard
+kubectl  <cmd+1
+
+# global settings.  
+# prevent arguments of native global option from being treated as commands
+# without these settings:  kc -n c c  >>>  kc -n create c
+# with settings: kc -n c c  >>>  kc -n c create
+# declare the option and additional arg as native (no expansion)
+kubectl:-n           <native+1
+kubectl:--namespace  <native+1
+kubectl:-s           <native+1
+kubectl:--server     <native+1
+kubectl:-v           <native+1
+kubectl:--v          <native+1
+
+# normal behavior when reaching last sub command is no more args are expanded
+# however, for these, allow one arg to expand (a resource)
+# kc get d -> kc get deploy
+kubectl>create       <arg=1
+kubectl>describe     <arg=1
+kubectl>get          <arg=1
+
+# kubectl set to only one subcommand, enable config explicitly for another
+kubectl>config       <cmd+1
+
+# treated as global even though they are not.
+# this is an invalid command:  kc -all gp > kc --all-namespaces get po  
+# this is:  kc gp -all > kc get po --all-namespaces  
+kubectl:-f           <native+1
+kubectl:--filename   <native+1
+kubectl:--all        --all-namespaces
+kubectl:--fs         +--field-selector=
+kubectl:--nks        -n=kube-system
+kubectl:--ow         -o=wide
+kubectl:--ojp        +-o=jsonpath=
+kubectl:--sl         --show-labels
+
+#
+# Expansions
+#
+
+kubectl>a   apply
+kubectl>af  apply -f
+kubectl>c   create
+kubectl>cd  create d
+kubectl>co  config
+kubectl>d   describe
+kubectl>e   explain
+kubectl>ep  explain po
+kubectl>g   get
+kubectl>gd  get d
+kubectl>gp  get p
+kubectl>gs  get s
+kubectl>l   logs
+kubectl>r   replace
+kubectl>rm  delete
+kubectl>ru  run
+
+# macros
+kubectl>debug  run debug --rm -i -t --image=busybox --restart=Never
+kubectl>scns   config set-context --current --namespace
+kubectl>gcns   config v --minify --output jsonpath={..namespace}
+
+kubectl>config>g    get-contexts
+kubectl>config>c    current-context
+kubectl>config>u    use-context
+kubectl>config>s    set-context
+kubectl>config>v    view
+kubectl>config>scr  set-credentials
+
+kubectl>config>set-credentials>-p  +--password=
+kubectl>config>set-credentials>-u  +--username=
+
+kubectl>create>c  configmap
+kubectl>create>d  deploy
+kubectl>create>p  po
+kubectl>create>s  svc
+
+kubectl>describe>p  po
+
+kubectl>explain>c  configmap
+kubectl>explain>d  deploy
+kubectl>explain>p  po
+kubectl>explain>s  svc
+
+kubectl>get>-s  --sort-by=.metadata.name
+kubectl>get>-y  -o=yaml
+kubectl>get>c   configmap
+kubectl>get>d   deploy
+kubectl>get>p   po
+kubectl>get>s   svc
+
