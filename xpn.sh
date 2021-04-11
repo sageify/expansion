@@ -1,13 +1,13 @@
 #!/bin/sh
 
-# returns 0 if expanded (word assigned), 1 otherwise (a directive on a native command, native with no entry in .xpn)
+# returns 0 if expanded (xargs assigned), 1 otherwise (a directive on a native command, native with no entry in .xpn)
 xpn_word() {
   for param; do
     xpn="$(grep -m 1 -e '^[[:space:]]*'"$param"'[[:space:]]' "$dot_xpn" | sed -e 's/^[[:space:]]*'"$param"'[[:space:]]*//')"
     case $xpn in
     '') continue ;;
     '<'*)
-      for direct in ${xpn#<}; do
+      while read -r direct; do
         # case is glob(7).  No way to specify number of digits should be unlimited. 999 should be enough
         case $direct in
         arg=[0-9] | arg=[0-9][0-9] | arg=[0-9][0-9][0-9])
@@ -27,33 +27,24 @@ xpn_word() {
           native_count=$((0 + ${direct#*+}))
           ;;
         native) ;;
-        word=*) word=${direct#*=} && return 0 ;;
+        word=*) xargs="${direct#*=}" word=0 && return 0 ;;
+        xargs=*) xargs="${direct#*=}" && return 0 ;;
         *) echo "xpn: $xpn: Unknown directive" 1>&2 && exit 1 ;;
         esac
-      done
+      done <<_
+$(printf %s "${xpn#<}" | xargs printf %s\\n)
+_
       return 1
       ;;
     '+'*)
-      append_next_param=y
+      append_next_param=0
       xpn="${xpn#?}"
-      ! [ "$xpn" ] && echo "xpn: $param +: Missing argument" 1>&2 && exit 1
       ;;
     esac
 
     case $xpn in
-    '`'*) word="${xpn#?}" && return 0 ;;
-    *)
-      xpn="${xpn#\|}"
-      for item in $xpn; do
-        case $item in
-        \"* | *\" | \'* | *\')
-          echo "xpn: $item: Warning. Use \` to prevent splitting.  Quotes are treated as literals" 1>&2
-          ;;
-        esac
-        [ "$word" ] && split="$split $word"
-        word=$item
-      done
-      ;;
+    '`'*) xargs="${xpn#?}" word=0 ;;
+    *) xargs="$xpn" ;;
     esac
     return 0
   done
@@ -80,10 +71,11 @@ xpn_escape() {
 #
 
 # must be a symoblic link to this file
-! [ -L "$0" ] &&
-  echo "xpn: Must be called with a symbolic link" 1>&2 &&
-  echo "     create link, for example: ln -s xpn.sh kc" 1>&2 &&
+if ! [ -L "$0" ]; then
+  echo "xpn: Must be called with a symbolic link" 1>&2
+  echo "     create link, for example: ln -s xpn.sh kc" 1>&2
   exit 1
+fi
 
 # current search order: XPN_CONFIG, link directory, $HOME/.xpn, this scripts directory
 ! dot_xpn="${XPN_CONFIG-$(dirname -- "$0")/.xpn}" && exit 1
@@ -92,8 +84,7 @@ if ! [ -f "$dot_xpn" ]; then
   if ! [ -f "$dot_xpn" ]; then
     ! dot_xpn="$(dirname -- "$(readlink -- "$0")")/.xpn" && exit 1
     ! [ -f "$dot_xpn" ] &&
-      echo "xpn: Can't find .xpn configuration file" 1>&2 &&
-      exit 1
+      echo "xpn: Can't find .xpn configuration file" 1>&2 && exit 1
   fi
 fi
 
@@ -105,7 +96,7 @@ set -- "$(basename -- "$0")" "$@"
 
 param_pos=1 native_count=0 cmd_count=1 cmd_arg_count=1 arg_count=1
 while [ $param_pos -le $# ]; do
-  unset -v xpn split word append_next_param arg_directive
+  unset -v xpn xargs word append_next_param arg_directive
 
   if [ $native_count -gt 0 ]; then
     native_count=$((native_count - 1))
@@ -145,18 +136,26 @@ while [ $param_pos -le $# ]; do
       ;;
     esac
 
-    if [ "$word" ]; then
+    if [ "${xargs+.}" ]; then
       shift
       if [ "$append_next_param" ]; then
-        # command>-n +name=; -n jane; -name=jane"
+        # command>-n +name=: -n jane: -name=jane"
         # abort if hit end of param_pos; -n (no jane)
-        [ $param_pos -gt $# ] && echo "xpn: $word: Missing parameter" 1>&2 && exit 1
-
-        word="$word$1"
+        [ $param_pos -gt $# ] && echo "xpn: missing argument" 1>&2 && exit 1
+        append_next_param="$1"
         shift
       fi
-      # shellcheck disable=SC2086
-      set -- $split "$word" "$@"
+
+      if [ "$word" ]; then
+        set -- "$xargs$append_next_param" "$@"
+      else
+        while IFS= read -r word; do
+          set -- "$word$append_next_param" "$@"
+          unset -v append_next_param
+        done <<_
+$(printf %s "$xargs" | xargs printf %s\\n | sed '1!G;h;$!d')
+_
+      fi
       continue
     fi
   fi

@@ -20,17 +20,20 @@ assert_equals '[edge][case][edge][case]' "$(./pf -b --dang edge case)"
 assert_equals '[--dang edge case]' "$(./pf -b "--dang edge case")"
 
 shert_empty './pf -b --dangcase 2>/dev/null'
-./pf -b --dangcase 2>/dev/null && assert_fail "Missing argument"
+shert_fail './pf -b --dangcase'
 
 assert_equals '[edge][case=]' "$(./pf -b --dangcase "")"
-assert_equals '[edge][case=edge]' "$(./pf -b --dangcase edge)"
+shert_equals './pf -b --dangcase edge' '[edge][case=edge]'
+
 assert_equals '[edge][case=edge][case]' "$(./pf -b --dangcase edge case)"
 assert_equals '[--dangcase edge case]' "$(./pf -b "--dangcase edge case")"
-assert_equals '[edge][case=edge case]' "$(./pf -b --dangcase "edge case")"
+shert_equals './pf -b --dangcase "edge case"' '[edge][case=edge case]'
 
-./pf -b --dangword 2>/dev/null && assert_fail "Missing argument"
+shert_fail './pf -b --dangword'
+
 assert_equals '[edge case=]' "$(./pf -b --dangword "")"
-assert_equals '[edge case=edge][case]' "$(./pf -b --dangword edge case)"
+shert_equals './pf -b --dangword edge case' '[edge case=edge][case]'
+shert_equals './pf -b --dangquoted edge case' '[edge case=edge][case]'
 
 assert_equals '[   ]' "$(./pf -b --spaces)"
 assert_equals '[Hello `World]' "$(./pf -b -t)"
@@ -40,6 +43,9 @@ assert_equals '[edge][case][--ignore-next][--dang][edge][case]' "$(./pf -b --dan
 
 assert_equals '[all]' "$(./pf -b --all)"
 
-assert_equals 'xpn: printf>--e1 +: Missing argument' "$(./pf -b --e1 2>&1)"
+shert_fail './pf -b --e1'
 
 assert_equals '[-xy]' "$(./pf -b -xy)"
+
+shert_equals './pf -b --quoted' '[Hello World][Goodbye World]'
+shert_equals './pf -b --dollar' '[$HOME]'

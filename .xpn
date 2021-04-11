@@ -1,6 +1,5 @@
-g   <file=xpn/git.xpn word=git
-kc  <file=xpn/kubectl.xpn word=kubectl
-tf  <file=xpn/terraform.xpn word=terraform
+g    <file=xpn/git.xpn word=git
+kc   <file=xpn/kubectl.xpn word=kubectl
+tf   <file=xpn/terraform.xpn word=terraform
 
-xpn      echo -t
-echo>-t  'Create a symbolic link: ln -s xpn.sh tf
+xpn  echo "usage: create a symbolic link: lnkn grm xpn.sh tf"

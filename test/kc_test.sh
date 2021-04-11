@@ -4,7 +4,7 @@ import github.com/sageify/shert@v0.0.1 shert.sh
 
 ## cheat sheet - https://kubernetes.io/docs/reference/kubectl/cheatsheet/
 
-shert_equals 'xdr='' ./kc co v' "'kubectl' 'config' 'view'"
+shert_equals 'xdr= ./kc co v' "'kubectl' 'config' 'view'"
 
 assert_equals "'kubectl' 'config' 'view' '"'-o=jsonpath={.users[?(@.name == "e2e")].user.password}'"'" \
   "$(xdr='' ./kc co v --ojp '{.users[?(@.name == "e2e")].user.password}')"

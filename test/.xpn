@@ -11,11 +11,13 @@ printf:--all          all
 printf>--dang         edge case
 printf>--dangcase     +edge case=
 printf>--dangword     +`edge case=
-printf>--ignore-next  <native+1
+printf>--dangquoted   +"edge case="
+printf>--dollar       $HOME
+printf>--ignore-next  <"native+1"
 printf>--ignore-rest  <native+99
 printf>--lines        -s -w
+printf>--quoted       "Hello World" "Goodbye World"
 printf>--spaces       `   
-printf>--warning      "Hello World"
 printf>-b             `[%s]
 printf>-s             Hello World
 printf>-t             `Hello `World
