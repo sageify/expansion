@@ -12,7 +12,7 @@ xpn_word() {
         case $direct in
         arg=[0-9] | arg=[0-9][0-9] | arg=[0-9][0-9][0-9])
           # specify new arg count
-          arg_directive=${direct#*=}
+          directive_arg_count=${direct#*=}
           ;;
         cmd) cmd_count=1 ;;
         cmd+[0-9] | cmd+[0-9][0-9] | cmd+[0-9][0-9][0-9])
@@ -36,8 +36,8 @@ $(printf %s "${xpn#<}" | xargs printf %s\\n)
 _
       return 1
       ;;
-    '+'*)
-      append_next_param=0
+    '+'* | '*'*)
+      next_param="${xpn%${xpn#?}}"
       xpn="${xpn#?}"
       ;;
     esac
@@ -52,7 +52,14 @@ _
 }
 
 xpn_escape() {
-  printf %s "$1" | sed "s/'/'\\\\''/g;1s/^/'/;\$s/\$/'/"
+  case $1 in
+  *[[:space:]\|\&\;\<\>\(\)\$\`\\\"\'*?[]* | ~*)
+    printf %s "$1" | sed "s/'/'\\\\''/g;1s/^/'/;\$s/\$/'/"
+    ;;
+  *)
+    printf %s "$1"
+    ;;
+  esac
 }
 
 # Command Expansion
@@ -96,9 +103,12 @@ set -- "$(basename -- "$0")" "$@"
 
 param_pos=1 native_count=0 cmd_count=1 cmd_arg_count=1 arg_count=1
 while [ $param_pos -le $# ]; do
-  unset -v xpn xargs word append_next_param arg_directive
+  # word = flag indicates xargs needs to be treated as an entire word
+  # next_param = flag indicates next param appended after next word or prepended
+  unset -v xpn xargs word next_param prepend append directive_arg_count
 
   if [ $native_count -gt 0 ]; then
+    # processing native parameters (never expanding)
     native_count=$((native_count - 1))
   else
     case $1 in
@@ -124,8 +134,8 @@ while [ $param_pos -le $# ]; do
         if [ $cmd_count -gt 0 ]; then
           cmd="$cmd$1>"
           cmd_count=$((cmd_count - 1))
-          if [ "$arg_directive" ]; then
-            arg_count=$arg_directive
+          if [ "$directive_arg_count" ]; then
+            arg_count=$directive_arg_count
           elif [ "$cmd_count" -eq 0 ]; then
             arg_count=0
           else
@@ -138,24 +148,33 @@ while [ $param_pos -le $# ]; do
 
     if [ "${xargs+.}" ]; then
       shift
-      if [ "$append_next_param" ]; then
-        # command>-n +name=: -n jane: -name=jane"
+      if [ "$next_param" ]; then
+        # command>--sh * -- /bin/sh  --sh pod   pod -- /bin/sh
+        # command>-n +-name=  -n jane  -name=jane"
         # abort if hit end of param_pos; -n (no jane)
         [ $param_pos -gt $# ] && echo "xpn: missing argument" 1>&2 && exit 1
-        append_next_param="$1"
+        case $next_param in
+        '+') append="$1" ;;
+        '*') prepend="$1" ;;
+        esac
+
         shift
       fi
 
       if [ "$word" ]; then
-        set -- "$xargs$append_next_param" "$@"
+        set -- "$xargs$append" "$@"
       else
-        while IFS= read -r word; do
-          set -- "$word$append_next_param" "$@"
-          unset -v append_next_param
+        while IFS= read -r xarg; do
+          set -- "$xarg$append" "$@"
+          unset -v append
+          # xargs in reverse order
         done <<_
 $(printf %s "$xargs" | xargs printf %s\\n | sed '1!G;h;$!d')
 _
       fi
+
+      [ "${prepend+.}" ] && set -- "$prepend" "$@"
+
       continue
     fi
   fi

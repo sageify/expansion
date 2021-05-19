@@ -50,3 +50,12 @@ pf %s\\n --word
 ```
 
 ## Todo
+
+```sh
+h= tf
+# a  apply
+# i  init
+# p  plan
+# v  validate
+# w  workspace
+```  

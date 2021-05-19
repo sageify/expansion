@@ -5,4 +5,6 @@ git>remote      <cmd+1
 
 git>go          config --get remote.origin.url
 git>ao          remote add origin
+
+# delete origin tag
 git>dot         +push origin :refs/tags/

@@ -3,7 +3,7 @@
 import github.com/sageify/shert@v0.0.1 shert.sh
 
 shert_equals './pf -b "Hello World"' '[Hello World]'
-assert_equals '[Hello World]' "$(./pf -b -w)"
+shert_equals "./pf -b -w" '[Hello World]' 
 assert_equals '[Hello World]' "$(./pf -bw)"
 assert_equals '[Hello][World]' "$(./pf -bs)"
 assert_equals '[Hello][World]' "$(./pf -b "-s")"
@@ -22,7 +22,7 @@ assert_equals '[--dang edge case]' "$(./pf -b "--dang edge case")"
 shert_empty './pf -b --dangcase 2>/dev/null'
 shert_fail './pf -b --dangcase'
 
-assert_equals '[edge][case=]' "$(./pf -b --dangcase "")"
+shert_equals './pf -b --dangcase ""' '[edge][case=]'
 shert_equals './pf -b --dangcase edge' '[edge][case=edge]'
 
 assert_equals '[edge][case=edge][case]' "$(./pf -b --dangcase edge case)"
@@ -49,3 +49,6 @@ assert_equals '[-xy]' "$(./pf -b -xy)"
 
 shert_equals './pf -b --quoted' '[Hello World][Goodbye World]'
 shert_equals './pf -b --dollar' '[$HOME]'
+
+shert_equals './pf -b --prepend Hi There' '[Hi][Hello][World][There]'
+shert_equals './pf -b --prepend "Hi There"' '[Hi There][Hello][World]'

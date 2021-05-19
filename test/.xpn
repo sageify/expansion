@@ -16,6 +16,7 @@ printf>--dollar       $HOME
 printf>--ignore-next  <"native+1"
 printf>--ignore-rest  <native+99
 printf>--lines        -s -w
+printf>--prepend      * Hello World
 printf>--quoted       "Hello World" "Goodbye World"
 printf>--spaces       `   
 printf>-b             `[%s]
