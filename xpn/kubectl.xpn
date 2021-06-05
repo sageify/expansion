@@ -43,6 +43,7 @@ kubectl:--sl         --show-labels
 kubectl>a       apply
 kubectl>af      apply -f
 kubectl>ak      apply -k
+kubectl>all     get all
 kubectl>c       create
 kubectl>cc      config current-context
 kubectl>cf      create -f
@@ -92,6 +93,7 @@ kubectl>svc     get svc
 kubectl>bash    exec --stdin --tty --bash
 kubectl>debug   run debug --rm -i -t --image=busybox --restart=Never
 kubectl>gcns    config v --minify --output jsonpath={..namespace}
+kubectl>image   +run debug --rm -i -t --restart=Never --command=true --image=
 kubectl>sh      exec --stdin --tty --sh
 kubectl>sns     config set-context --current --namespace
 

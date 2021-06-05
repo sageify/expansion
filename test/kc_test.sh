@@ -50,6 +50,6 @@ shert_equals './kc des no my-node'  "kubectl describe no my-node"
 shert_equals './kc des po my-node' "kubectl describe po my-node"
 
 # List Services Sorted by Name
-shert_equals './kc svc -sy' "kubectl get svc --sort-by=.metadata.name -o=yaml"
+shert_equals './kc svc -s -y' "kubectl get svc --sort-by=.metadata.name -o=yaml"
 
 shert_equals './kc po --fs status.phase=Running' "kubectl get po --field-selector=status.phase=Running"

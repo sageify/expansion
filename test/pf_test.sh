@@ -4,12 +4,12 @@ import github.com/sageify/shert@v0.0.1 shert.sh
 
 shert_equals './pf -b "Hello World"' '[Hello World]'
 shert_equals "./pf -b -w" '[Hello World]' 
-assert_equals '[Hello World]' "$(./pf -bw)"
-assert_equals '[Hello][World]' "$(./pf -bs)"
+assert_equals '[Hello World]' "$(./pf -b -w)"
+assert_equals '[Hello][World]' "$(./pf -b -s)"
 assert_equals '[Hello][World]' "$(./pf -b "-s")"
 
 assert_equals '[-s Yall]' "$(./pf -b "-s Yall")"
-assert_equals '[Hello][World][Yall]' "$(./pf -bs Yall)"
+assert_equals '[Hello][World][Yall]' "$(./pf -b -s Yall)"
 
 assert_equals '[Hello][World][Hello World]' "$(./pf -b --lines)"
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# returns 0 if expanded (xargs assigned), 1 otherwise (a directive on a native command, native with no entry in .xpn)
+# returns 0 if expanded, 1 otherwise (a directive on a native command, native with no entry in .xpn)
 xpn_word() {
   for param; do
     xpn="$(grep -m 1 -e '^[[:space:]]*'"$param"'[[:space:]]' "$dot_xpn" | sed -e 's/^[[:space:]]*'"$param"'[[:space:]]*//')"
@@ -32,7 +32,7 @@ xpn_word() {
         *) echo "xpn: $xpn: Unknown directive" 1>&2 && exit 1 ;;
         esac
       done <<_
-$(printf %s "${xpn#<}" | xargs printf %s\\n)
+$(printf %s "${xpn#<}" | xargs -n 100 printf %s\\n)
 _
       return 1
       ;;
@@ -113,21 +113,7 @@ while [ $param_pos -le $# ]; do
   else
     case $1 in
     *[![:alnum:]_-]*) ;;
-    -? | --*) xpn_word "$cmd$1" "$native_first:$1" ;;
-    -*)
-      xpn_word "$cmd$1" "$native_first:$1"
-      if ! [ "$xpn" ]; then
-        # -au -> -a -u
-        flags=${1#-}
-        shift
-        while [ "$flags" ]; do
-          head=${flags%?}
-          set -- "-${flags#$head}" "$@"
-          flags="$head"
-        done
-        continue
-      fi
-      ;;
+    -*) xpn_word "$cmd$1" "$native_first:$1" ;;
     *)
       if [ $arg_count -gt 0 ] && ! xpn_word "$cmd$1"; then
         arg_count=$((arg_count - 1))
@@ -152,7 +138,7 @@ while [ $param_pos -le $# ]; do
         # command>--sh * -- /bin/sh  --sh pod   pod -- /bin/sh
         # command>-n +-name=  -n jane  -name=jane"
         # abort if hit end of param_pos; -n (no jane)
-        [ $param_pos -gt $# ] && echo "xpn: missing argument" 1>&2 && exit 1
+        [ $param_pos -gt $# ] && echo "xpn: expecting additional argument" 1>&2 && exit 1
         case $next_param in
         '+') append="$1" ;;
         '*') prepend="$1" ;;
