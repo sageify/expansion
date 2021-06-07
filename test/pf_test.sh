@@ -2,6 +2,7 @@
 . shmod
 import github.com/sageify/shert@v0.0.1 shert.sh
 
+
 shert_equals './pf -b "Hello World"' '[Hello World]'
 shert_equals "./pf -b -w" '[Hello World]' 
 assert_equals '[Hello World]' "$(./pf -b -w)"
@@ -52,3 +53,8 @@ shert_equals './pf -b --dollar' '[$HOME]'
 
 shert_equals './pf -b --prepend Hi There' '[Hi][Hello][World][There]'
 shert_equals './pf -b --prepend "Hi There"' '[Hi There][Hello][World]'
+
+export TEST=test
+shert_equals './pf -b --var' '[test]'
+
+shert_equals './pf -b --script' '[Hello][Script]'

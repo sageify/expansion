@@ -1,52 +1,52 @@
 #!/bin/sh
 
-# returns 0 if expanded, 1 otherwise (a directive on a native command, native with no entry in .xpn)
+# returns 0 if expanded to xargs, 1 otherwise (a directive on a native command, native with no entry in .xpn)
 xpn_word() {
   for param; do
     xpn="$(grep -m 1 -e '^[[:space:]]*'"$param"'[[:space:]]' "$dot_xpn" | sed -e 's/^[[:space:]]*'"$param"'[[:space:]]*//')"
+    # shellcheck disable=SC2086,SC2016,SC1003
     case $xpn in
     '') continue ;;
-    '<'*)
-      while read -r direct; do
+    '$('*) xargs=$(${xpn#??}) ;;
+    '$'*) xargs=$(printenv ${xpn#?}) ;;
+    '|`'* | '*`'*) next_param="${xpn%${xpn#?}}" xargs="${xpn#??}" word=1 ;;
+    '|'* | '*'*) next_param="${xpn%${xpn#?}}" xargs="${xpn#?}" ;;
+    '\'*) xargs=${xpn#?} ;;
+    '`'*) xargs=${xpn#?} word=1 ;;
+    '?'*)
+      while read -r pi; do
         # case is glob(7).  No way to specify number of digits should be unlimited. 999 should be enough
-        case $direct in
+        case $pi in
         arg=[0-9] | arg=[0-9][0-9] | arg=[0-9][0-9][0-9])
           # specify new arg count
-          directive_arg_count=${direct#*=}
+          directive_arg_count=${pi#*=}
           ;;
         cmd) cmd_count=1 ;;
         cmd+[0-9] | cmd+[0-9][0-9] | cmd+[0-9][0-9][0-9])
           # specify new depth for commands
-          cmd_count=$((1 + ${direct#*+}))
+          cmd_count=$((1 + ${pi#*+}))
           ;;
         cmd_arg=[0-9] | cmd_arg=[0-9][0-9] | cmd_arg=[0-9][0-9][0-9])
-          cmd_arg_count=${direct#*=}
+          cmd_arg_count=${pi#*=}
           ;;
-        file=*) dot_xpn=$(dirname -- "$dot_xpn")/${direct#*=} ;;
+        file=*) dot_xpn=$(dirname -- "$dot_xpn")/${pi#*=} ;;
         native+[0-9] | native+[0-9][0-9] | native+[0-9][0-9][0-9])
-          native_count=$((0 + ${direct#*+}))
+          native_count=$((0 + ${pi#*+}))
           ;;
         native) ;;
-        word=*) xargs="${direct#*=}" word=0 && return 0 ;;
-        xargs=*) xargs="${direct#*=}" && return 0 ;;
-        *) echo "xpn: $xpn: Unknown directive" 1>&2 && exit 1 ;;
+        word=*) xargs="${pi#*=}" word=1 ;;
+        xargs=*) xargs="${pi#*=}" ;;
+        *) echo "xpn: $xpn: Unknown processing instruction" 1>&2 && exit 1 ;;
         esac
       done <<_
-$(printf %s "${xpn#<}" | xargs -n 100 printf %s\\n)
+$(printf %s "${xpn#?}" | xargs printf %s\\n)
 _
-      return 1
       ;;
-    '+'* | '*'*)
-      next_param="${xpn%${xpn#?}}"
-      xpn="${xpn#?}"
-      ;;
-    esac
-
-    case $xpn in
-    '`'*) xargs="${xpn#?}" word=0 ;;
     *) xargs="$xpn" ;;
     esac
-    return 0
+
+    [ "${xargs+.}" ] && return 0
+    return 1
   done
   return 1
 }
@@ -140,7 +140,7 @@ while [ $param_pos -le $# ]; do
         # abort if hit end of param_pos; -n (no jane)
         [ $param_pos -gt $# ] && echo "xpn: expecting additional argument" 1>&2 && exit 1
         case $next_param in
-        '+') append="$1" ;;
+        '|') append="$1" ;;
         '*') prepend="$1" ;;
         esac
 

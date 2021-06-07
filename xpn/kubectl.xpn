@@ -1,36 +1,36 @@
 # kubectl has 1 subcommand as standard
-kubectl  <cmd+1
+kubectl  ? cmd+1
 
 # global settings.  
 # prevent arguments of native global option from being treated as commands
 # without these settings:  kc -n c c  >>>  kc -n create c
 # with settings: kc -n c c  >>>  kc -n c create
 # declare the option and additional arg as native (no expansion)
-kubectl:-n           <native+1
-kubectl:--namespace  <native+1
-kubectl:-s           <native+1
-kubectl:--server     <native+1
-kubectl:-v           <native+1
-kubectl:--v          <native+1
+kubectl:-n           ? native+1
+kubectl:--namespace  ? native+1
+kubectl:-s           ? native+1
+kubectl:--server     ? native+1
+kubectl:-v           ? native+1
+kubectl:--v          ? native+1
 
 # normal behavior when reaching last sub command is no more args are expanded
 # however, for these, allow one arg to expand (a resource)
 # kc get d -> kc get deploy
-kubectl>create       <arg=1
-kubectl>describe     <arg=1
-kubectl>get          <arg=1
+kubectl>create       ? arg=1
+kubectl>describe     ? arg=1
+kubectl>get          ? arg=1
 
 # kubectl set to only one subcommand, enable config explicitly for another
-kubectl>config       <cmd+1
+kubectl>config       ? cmd+1
 
 # treated as global even though they are not.
 # this is an invalid command:  kc -all gp > kc --all-namespaces get po  
 # this is:  kc gp -all > kc get po --all-namespaces  
-kubectl:-f           <native+1
-kubectl:--filename   <native+1
-kubectl:--fs         +--field-selector=
+kubectl:-f           ? native+1
+kubectl:--filename   ? native+1
+kubectl:--fs         | --field-selector=
 kubectl:--nks        -n=kube-system
-kubectl:--ojp        +-o=jsonpath=
+kubectl:--ojp        | -o=jsonpath=
 kubectl:--ow         -o=wide
 kubectl:--oy         -o=yaml
 kubectl:--sl         --show-labels
@@ -93,7 +93,7 @@ kubectl>svc     get svc
 kubectl>bash    exec --stdin --tty --bash
 kubectl>debug   run debug --rm -i -t --image=busybox --restart=Never
 kubectl>gcns    config v --minify --output jsonpath={..namespace}
-kubectl>image   +run debug --rm -i -t --restart=Never --command=true --image=
+kubectl>image   | run debug --rm -i -t --restart=Never --command=true --image=
 kubectl>sh      exec --stdin --tty --sh
 kubectl>sns     config set-context --current --namespace
 
@@ -104,8 +104,8 @@ kubectl>config>sco   set-context
 kubectl>config>v     view
 kubectl>config>scr   set-credentials
 
-kubectl>config>set-credentials>-p  +--password=
-kubectl>config>set-credentials>-u  +--username=
+kubectl>config>set-credentials>-p  | --password=
+kubectl>config>set-credentials>-u  | --username=
 
 kubectl>create>dep  deployment
 
